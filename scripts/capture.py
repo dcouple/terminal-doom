@@ -267,6 +267,10 @@ def main():
     written = 0
 
     start = time.time()
+    # Capture mode writes the game's audio out separately; this is the clock the
+    # two get lined up against.
+    with open(os.path.join(args.out, "capture-start"), "w") as fh:
+        fh.write(str(start))
     try:
         while (now := time.time() - start) < args.seconds:
             while events and events[0][0] <= now:

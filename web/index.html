@@ -121,6 +121,41 @@
         setStatus: function () {},
       };
 
+      // ---- capture mode -------------------------------------------------
+      // Only with ?capture=1, so a normal game never does any of this: tap the
+      // audio graph SDL2 builds and post the recording back to the local server,
+      // which is the only way to get the game's own sound off a machine with no
+      // audio device to record from.
+      if (new URLSearchParams(location.search).has("capture")) {
+        var startAudioCapture = function () {
+          var sdl = Module.SDL2;
+          if (!sdl || !sdl.audio || !sdl.audio.scriptProcessorNode) return false;
+          var ctx = sdl.audioContext;
+          if (ctx.state === "suspended") ctx.resume();
+          var sink = ctx.createMediaStreamDestination();
+          // The node stays connected to the speakers too; this only adds a tap.
+          sdl.audio.scriptProcessorNode.connect(sink);
+          var rec = new MediaRecorder(sink.stream, { mimeType: "audio/webm" });
+          // Post each slice as it lands and let the server append. The harness
+          // kills the browser when the run ends, so waiting for onstop loses
+          // the whole recording.
+          rec.ondataavailable = function (e) {
+            if (e.data.size) fetch("/__audio", { method: "POST", body: e.data });
+          };
+          rec.start(400);
+          // The server timestamps this, which is what lines the audio up with
+          // the video frames later.
+          fetch("/__mark", { method: "POST" });
+          window.addEventListener("beforeunload", function () { rec.stop(); });
+          window.terminalDoomStopAudio = function () { rec.stop(); };
+          return true;
+        };
+        var tries = 0;
+        var poll = setInterval(function () {
+          if (startAudioCapture() || ++tries > 400) clearInterval(poll);
+        }, 50);
+      }
+
       // A small handle so `terminal-browser action -- eval` can check on the
       // game from outside without poking at emscripten internals.
       window.terminalDoom = {

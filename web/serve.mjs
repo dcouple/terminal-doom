@@ -5,7 +5,7 @@
 // the same directory over loopback instead, on an ephemeral port unless one is
 // given, and prints the chosen port on stdout so the launcher can read it.
 import { createServer } from "node:http";
-import { createReadStream, statSync } from "node:fs";
+import { appendFileSync, createReadStream, statSync, writeFileSync } from "node:fs";
 import { extname, join, normalize, resolve } from "node:path";
 
 const root = resolve(process.argv[2] ?? ".");
@@ -24,8 +24,29 @@ const TYPES = {
   ".cfg": "text/plain; charset=utf-8",
 };
 
+// Capture mode drops two files here: the game's own audio, and the moment the
+// recorder started, which is what the capture harness aligns the video against.
+const captureDir = process.env.TERMINAL_DOOM_CAPTURE_DIR;
+
 const server = createServer((req, res) => {
   const url = new URL(req.url, "http://localhost");
+
+  if (req.method === "POST" && captureDir) {
+    if (url.pathname === "/__mark") {
+      writeFileSync(join(captureDir, "audio-start"), String(Date.now() / 1000));
+      res.writeHead(204).end();
+      return;
+    }
+    if (url.pathname === "/__audio") {
+      const chunks = [];
+      req.on("data", (c) => chunks.push(c));
+      req.on("end", () => {
+        appendFileSync(join(captureDir, "audio.webm"), Buffer.concat(chunks));
+        res.writeHead(204).end();
+      });
+      return;
+    }
+  }
   const rel = normalize(decodeURIComponent(url.pathname)).replace(/^(\.\.[/\\])+/, "");
   const path = join(root, rel === "/" ? "/index.html" : rel);
 

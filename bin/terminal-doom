@@ -124,6 +124,9 @@ if [ -z "$BOUND" ]; then
 fi
 
 URL="http://127.0.0.1:$BOUND/"
+# scripts/capture.py sets this. It turns on the page's audio tap, which posts the
+# game's own sound back to the server; a normal run never touches any of it.
+[ -n "${TERMINAL_DOOM_CAPTURE_DIR:-}" ] && URL="$URL?capture=1"
 
 if [ "$SERVE_ONLY" -eq 1 ]; then
   echo "$URL"
