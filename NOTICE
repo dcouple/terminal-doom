@@ -1,0 +1,32 @@
+terminal-doom is three things with three different licences. Read this before
+copying any of it.
+
+1. The wrapper — MIT (see LICENSE)
+   bin/terminal-doom, install.sh, web/index.html, web/serve.mjs,
+   web/default.cfg, scripts/*
+   Written for this project.
+
+2. The engine — GNU General Public License, version 2
+   web/doom.js, web/doom.wasm
+   Built from https://github.com/cloudflare/doom-wasm (a WebAssembly port of
+   Chocolate Doom, itself derived from id Software's DOOM source release).
+   The exact commit and toolchain are recorded in web/BUILD-INFO, and
+   scripts/build-wasm.sh reproduces the binaries from that source. Those two
+   files are covered by the GPLv2, not by the MIT licence above; distributing
+   them carries the GPL's obligation to offer the corresponding source, which
+   the build script and the upstream repository satisfy.
+
+   Chocolate Doom: https://github.com/chocolate-doom/chocolate-doom
+   GPLv2: https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+
+3. The game data — id Software shareware
+   web/doom1.wad
+   The DOOM shareware IWAD, version 1.9 (md5 f0cefca49926d00903cf57551d901abe).
+   id Software distributed this episode free of charge and asked that it be
+   passed along; it is included here unmodified for that reason. It is not
+   MIT licensed and it is not ours to relicense. The registered episodes, DOOM
+   II and the Ultimate DOOM are commercial and are not included — point
+   terminal-doom at your own IWAD if you own one.
+
+DOOM is a trademark of id Software LLC. This project is not affiliated with,
+endorsed by, or sponsored by id Software, ZeniMax or Bethesda.

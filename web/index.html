@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>terminal-doom</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html, body {
+        width: 100%; height: 100%;
+        background: #000;
+        overflow: hidden;
+        cursor: none;
+        font: 14px ui-monospace, SFMono-Regular, Menlo, monospace;
+        color: #b33;
+      }
+      /* The canvas must have no border or padding, or mouse coords go wrong. */
+      #canvas {
+        display: block;
+        position: absolute;
+        inset: 0;
+        margin: auto;
+        background: #000;
+        outline: none;
+        /* DOOM is a 320x200 game upscaled. Keep the pixels chunky, not blurry. */
+        image-rendering: pixelated;
+        image-rendering: crisp-edges;
+      }
+      #boot {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-content: center;
+        justify-items: center;
+        gap: 1.2em;
+        background: #000;
+        letter-spacing: 0.35em;
+        text-transform: uppercase;
+        transition: opacity 240ms ease-out;
+        z-index: 2;
+      }
+      #boot.gone { opacity: 0; pointer-events: none; }
+      #boot .bar { width: 14em; height: 3px; background: #2a0000; overflow: hidden; }
+      #boot .bar i { display: block; height: 100%; width: 0%; background: #b33; transition: width 160ms linear; }
+    </style>
+  </head>
+  <body>
+    <canvas id="canvas" tabindex="-1" oncontextmenu="event.preventDefault()"></canvas>
+    <div id="boot"><div>terminal-doom</div><div class="bar"><i id="bootbar"></i></div></div>
+
+    <script>
+      // ---- layout -------------------------------------------------------
+      // DOOM renders at 4:3. Fit the largest 4:3 box inside the terminal pane
+      // and let the browser upscale it with nearest-neighbour.
+      var ASPECT = 4 / 3;
+      var canvas = document.getElementById("canvas");
+      function fit() {
+        var w = window.innerWidth, h = window.innerHeight;
+        var cw = w, ch = Math.round(w / ASPECT);
+        if (ch > h) { ch = h; cw = Math.round(h * ASPECT); }
+        canvas.style.width = cw + "px";
+        canvas.style.height = ch + "px";
+      }
+      fit();
+      window.addEventListener("resize", fit);
+
+      // ---- boot overlay -------------------------------------------------
+      var boot = document.getElementById("boot"), bootbar = document.getElementById("bootbar");
+      var bootDone = false;
+      function progress(p) { if (!bootDone) bootbar.style.width = Math.round(p * 100) + "%"; }
+      function hideBoot() {
+        if (bootDone) return;
+        bootDone = true;
+        progress(1);
+        boot.classList.add("gone");
+        setTimeout(function () { boot.remove(); }, 300);
+      }
+
+      // ---- audio unlock -------------------------------------------------
+      // Chromium blocks audio until a gesture. Any key or click counts, and the
+      // player is about to press one to get past the title screen anyway.
+      function unlockAudio() {
+        try {
+          var ctx = window.SDL2 && window.SDL2.audioContext;
+          if (ctx && ctx.state === "suspended") ctx.resume();
+        } catch (e) {}
+      }
+      ["keydown", "mousedown", "touchstart"].forEach(function (ev) {
+        window.addEventListener(ev, unlockAudio, { capture: true });
+      });
+
+      // ---- emscripten module --------------------------------------------
+      // -nogui skips chocolate-doom's setup tool and -window keeps SDL off the
+      // fullscreen path, since the terminal pane is already the whole screen.
+      // -nomusic because the port's OPL emulation never finishes initialising
+      // under emscripten and hangs the boot; sound effects are unaffected.
+      var DOOM_ARGS = ["-iwad", "doom1.wad", "-window", "-nogui", "-nomusic", "-config", "default.cfg"];
+
+      var Module = {
+        canvas: canvas,
+        noInitialRun: true,
+        arguments: DOOM_ARGS,
+        preRun: [
+          function () {
+            Module.FS.createPreloadedFile("", "doom1.wad", "doom1.wad", true, true);
+            Module.FS.createPreloadedFile("", "default.cfg", "default.cfg", true, true);
+          },
+        ],
+        onRuntimeInitialized: function () {
+          Module.callMain(DOOM_ARGS);
+          // The first frame lands a beat after main() starts.
+          setTimeout(hideBoot, 400);
+        },
+        totalDependencies: 0,
+        monitorRunDependencies: function (left) {
+          this.totalDependencies = Math.max(this.totalDependencies, left);
+          if (this.totalDependencies) progress((this.totalDependencies - left) / this.totalDependencies);
+        },
+        print: function () { console.log.apply(console, arguments); },
+        printErr: function () { console.error.apply(console, arguments); },
+        setStatus: function () {},
+      };
+
+      // A small handle so `terminal-browser action -- eval` can check on the
+      // game from outside without poking at emscripten internals.
+      window.terminalDoom = {
+        booted: function () { return bootDone; },
+        // Non-zero pixels mean DOOM has actually drawn something.
+        frameHash: function () {
+          try {
+            var gl = canvas.getContext("webgl2") || canvas.getContext("webgl");
+            var w = canvas.width, h = canvas.height;
+            var px = new Uint8Array(w * h * 4);
+            gl.readPixels(0, 0, w, h, gl.RGBA, gl.UNSIGNED_BYTE, px);
+            var sum = 0;
+            for (var i = 0; i < px.length; i += 997) sum = (sum * 31 + px[i]) >>> 0;
+            return { w: w, h: h, hash: sum };
+          } catch (e) { return { error: String(e) }; }
+        },
+      };
+    </script>
+    <script src="doom.js"></script>
+  </body>
+</html>
