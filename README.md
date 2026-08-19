@@ -59,6 +59,40 @@ games do not survive quitting, because the game's filesystem lives in memory.
 What ships is the shareware episode, Knee-Deep in the Dead. If you own the full
 game, drop your own iwad in as `web/doom1.wad`.
 
+### How this was made
+
+Claude Code built this in 53 minutes, from first command to a public repo, and
+then spent about another hour on the recording after I asked for polish.
+
+The direction it got was one paragraph: make DOOM run in the terminal the way
+[terminal-code](https://github.com/zenbu-labs/terminal-code) made VS Code run in
+the terminal, read those two repos first, and it has to be reproducible by
+strangers with one command. Nothing after that was specified. Which DOOM to use,
+where to get a wad that is legal to redistribute, how to build it, what broke
+and why, how to prove any of it worked, how to license a project whose engine is
+GPL and whose data is shareware. It worked those out and told me when it had.
+
+The part I did not expect: the machine it was working on has screen recording
+switched off, so it could not see the terminal it was driving. Instead of asking
+me to turn it on, it wrote a terminal. `scripts/capture.py` holds the far end of
+a pty, answers the queries a real terminal answers, decodes the frames
+terminal-browser transmits, and types back in the kitty keyboard encoding, held
+keys and modifiers included, because a game needs key releases and a tap is not
+a walk.
+
+That one file ended up doing three jobs. It was the debugger, since every "is
+this working" question became a png. It was the test suite, because a frame with
+DOOM in it means the wasm booted, chromium rendered, the escape codes were well
+formed and the keys arrived. And it was the camera: every frame in the recording
+above is bytes terminal-browser actually wrote to a terminal, which is why the
+ammo counter really does tick down as `ctrl` is pressed.
+
+It found the boot bug the same way. DOOM was dying with a sprite error that
+reads exactly like a corrupt wad, so it went and fetched the canonical shareware
+wad, hash-verified it, watched the error survive, and then found the real cause
+in a patch it had written itself twenty minutes earlier. That is the `_Bool`
+story below.
+
 ### How does it work?
 
 terminal-doom combines [terminal-browser](https://github.com/zenbu-labs/terminal-browser)
@@ -88,10 +122,7 @@ emscripten and applies those patches. You do not need it to play.
 
 ### Testing it without a screen
 
-`scripts/capture.py` pretends to be a terminal. It puts the game on a pty,
-answers the kitty graphics and keyboard handshakes, decodes the frames coming
-back, and types into the game. That makes the whole chain testable on a machine
-with no display, and it is how the recording above was made.
+`scripts/capture.py`, from the story above, is a normal way to test this thing:
 
 ```bash
 scripts/capture.py --out media --video demo.mp4 --seconds 16 \
