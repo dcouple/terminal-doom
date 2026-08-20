@@ -72,7 +72,17 @@ they run.
 
 I sent the orchestrator the
 [terminal-code](https://github.com/zenbu-labs/terminal-code) tweet and asked
-for DOOM the same way. It created a worktree, wrote a one-page brief, and
+for DOOM the same way. This is the raw message, typos and all:
+
+```
+i saw a tweet go viral where someone got vs code running in a terminal (since
+its just web/opens ource) and im wondering if we can do the same thing but get
+doom running in a terminal using
+https://github.com/zenbu-labs/terminal-browser#how-does-it-work (which is what
+he used) i mainly wnat it to go viral lol
+```
+
+It created a worktree, wrote a one-page brief, and
 handed it to a Claude Opus 5 agent. The brief set the ground rules: read
 terminal-browser and terminal-code first, pick an existing web DOOM, ship the
 shareware wad only, self-host everything so the install one-liner keeps working
