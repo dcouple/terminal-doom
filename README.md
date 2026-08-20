@@ -61,16 +61,28 @@ game, drop your own iwad in as `web/doom1.wad`.
 
 ### How this was made
 
-Claude Code built this in 53 minutes, from first command to a public repo, and
-then spent about another hour on the recording after I asked for polish.
+This did not come out of one chat window. I run an agent workspace:
+[Pane](https://github.com/dcouple/Pane) manages the repos, worktrees and agent
+terminals, and a chat orchestrator — Claude Fable 5 running the
+pane-orchestrator skill from [dcouple/skills](https://github.com/dcouple/skills),
+with the workflow conventions from
+[dcouple/orchestra](https://github.com/dcouple/orchestra) — runs the agents
+inside it. I sent the orchestrator the terminal-code tweet and said I wanted
+DOOM the same way. It created a fresh worktree, wrote the brief, dispatched a
+Claude Opus 5 agent into it, and relayed my scope changes mid-flight while the
+agent worked.
 
-The direction it got was one paragraph: make DOOM run in the terminal the way
-[terminal-code](https://github.com/zenbu-labs/terminal-code) made VS Code run in
-the terminal, read those two repos first, and it has to be reproducible by
-strangers with one command. Nothing after that was specified. Which DOOM to use,
-where to get a wad that is legal to redistribute, how to build it, what broke
-and why, how to prove any of it worked, how to license a project whose engine is
-GPL and whose data is shareware. It worked those out and told me when it had.
+The brief was a page, not a paragraph: read
+[terminal-code](https://github.com/zenbu-labs/terminal-code) and
+terminal-browser first, evaluate the existing web DOOMs instead of porting one,
+ship only the wad that is legal to redistribute, self-host everything so the
+one-liner does not depend on someone else's uptime, prove that keys reach the
+game rather than assuming it, and end with a recording, a README, and the exact
+steps to reproduce the clip. What was not specified — which DOOM, how to build
+it, what broke and why, how to license a project whose engine is GPL and whose
+data is shareware — the agent worked out and reported back. First command to a
+public repo took it 53 minutes, then about another hour on the recording after
+I asked for polish.
 
 The part I did not expect: the machine it was working on has screen recording
 switched off, so it could not see the terminal it was driving. Instead of asking
@@ -145,6 +157,7 @@ involved in this.
 ### Thanks
 
 - [terminal-browser](https://github.com/zenbu-labs/terminal-browser), which does the hard part
+- [Pane](https://github.com/dcouple/Pane), [dcouple/skills](https://github.com/dcouple/skills) and [dcouple/orchestra](https://github.com/dcouple/orchestra), the workspace and orchestration this was built inside
 - [terminal-code](https://github.com/zenbu-labs/terminal-code), which showed a web app in a terminal pane can be a real product
 - [cloudflare/doom-wasm](https://github.com/cloudflare/doom-wasm) and [Chocolate Doom](https://github.com/chocolate-doom/chocolate-doom)
 - id Software, for shipping the source
