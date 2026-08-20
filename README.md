@@ -10,7 +10,7 @@ DOOM inside your terminal
 curl -fsSL https://raw.githubusercontent.com/dcouple/terminal-doom/main/install.sh | bash
 ```
 
-The game comes with it. There is no wad to go and find.
+The game comes with it, wad included.
 
 ### Usage
 
@@ -52,9 +52,10 @@ whatever the pane is, so a bigger pane is a bigger, sharper DOOM.
 Leave it alone at the title screen and DOOM plays the attract demos id shipped
 in the wad in 1993.
 
-Two things to know before you get attached to a run. There is no music, because
-the port's OPL emulation hangs under emscripten; sound effects work. And saved
-games do not survive quitting, because the game's filesystem lives in memory.
+Two things to know before you get attached to a run. Sound effects work; music
+is off because the port's OPL emulation hangs under emscripten. And the game's
+filesystem lives in memory, saves included, so a run lasts exactly as long as
+its session.
 
 What ships is the shareware episode, Knee-Deep in the Dead. If you own the full
 game, drop your own iwad in as `web/doom1.wad`.
@@ -72,7 +73,17 @@ they run.
 
 I sent the orchestrator the
 [terminal-code](https://github.com/zenbu-labs/terminal-code) tweet and asked
-for DOOM the same way. It created a worktree, wrote a one-page brief, and
+for DOOM the same way. This is the raw message, typos and all:
+
+```
+i saw a tweet go viral where someone got vs code running in a terminal (since
+its just web/opens ource) and im wondering if we can do the same thing but get
+doom running in a terminal using
+https://github.com/zenbu-labs/terminal-browser#how-does-it-work (which is what
+he used) i mainly wnat it to go viral lol
+```
+
+It created a worktree, wrote a one-page brief, and
 handed it to a Claude Opus 5 agent. The brief set the ground rules: read
 terminal-browser and terminal-code first, pick an existing web DOOM, ship the
 shareware wad only, self-host everything so the install one-liner keeps working
@@ -87,13 +98,12 @@ The brief is in [BRIEF.md](BRIEF.md), verbatim, along with the one message the
 orchestrator relayed mid-build. If you want to see what the delegation actually
 looked like, that file is the whole of it.
 
-The part I did not expect: the machine it was working on has screen recording
-switched off, so it could not see the terminal it was driving. Instead of asking
-me to turn it on, it wrote a terminal. `scripts/capture.py` holds the far end of
-a pty, answers the queries a real terminal answers, decodes the frames
-terminal-browser transmits, and types back in the kitty keyboard encoding, held
-keys and modifiers included, because a game needs key releases and a tap is not
-a walk.
+My favourite part: the machine it worked on has screen recording switched off,
+which left the agent blind to the terminal it was driving. So it wrote a
+terminal. `scripts/capture.py` holds the far end of a pty, answers the queries
+a real terminal answers, decodes the frames terminal-browser transmits, and
+types back in the kitty keyboard encoding, held keys and modifiers included,
+because a game needs key releases: a walk is a held key, a tap is a single step.
 
 That one file ended up doing three jobs. It was the debugger, since every "is
 this working" question became a png. It was the test suite, because a frame with
@@ -113,7 +123,7 @@ story below.
 terminal-doom combines [terminal-browser](https://github.com/zenbu-labs/terminal-browser)
 (a browser in the terminal) and [doom-wasm](https://github.com/cloudflare/doom-wasm)
 (Chocolate Doom compiled to WebAssembly). A small server on loopback hands the
-game to the browser, because wasm cannot load over `file://`.
+game to the browser, because wasm loads over http only.
 
 So the frames go DOOM, wasm, chromium, escape codes, your terminal, 35 times a
 second. Your keys make the same trip back. It works over ssh for the same reason
@@ -124,8 +134,8 @@ Three things the port needed before it would boot:
 - `boolean` has to stay four bytes wide. `doomtype.h` declares its own
   `enum { false, true }`, which stopped compiling once SDL2 started including
   `<stdbool.h>`. Its fallback, `typedef bool boolean`, is quietly fatal: DOOM
-  memsets sprite tables to `-1` and tests them against `true`, which is defined
-  for a four byte enum and not for a one byte `_Bool`. Read through a `_Bool` the
+  memsets sprite tables to `-1` and tests them against `true`, a comparison
+  that holds for a four byte enum and breaks for a one byte `_Bool`. Read through a `_Bool` the
   sentinel comes back true, and the boot dies in `r_things.c` complaining about a
   sprite, which looks exactly like a corrupt wad.
 - `-nomusic`, for the reason above.
@@ -133,7 +143,7 @@ Three things the port needed before it would boot:
   terminal-browser can read back.
 
 `scripts/build-wasm.sh` rebuilds the engine from a pinned commit with a pinned
-emscripten and applies those patches. You do not need it to play.
+emscripten and applies those patches. The repo ships the result, ready to play.
 
 ### Testing it without a screen
 
@@ -146,16 +156,16 @@ scripts/capture.py --out media --video demo.mp4 --seconds 16 \
 
 ### Windows
 
-The kitty graphics protocol is thin on the ground on Windows, and there is no
-Windows build. Installing the Linux version inside
+The kitty graphics protocol is thin on the ground on Windows, so the build
+targets macOS and Linux. Installing the Linux version inside
 [WSL](https://learn.microsoft.com/en-us/windows/wsl/install) works.
 
 ### Licence
 
 Three parts, three licences, spelled out in [NOTICE](NOTICE). The wrapper is
 MIT. The engine is GPLv2, from Chocolate Doom. The wad is id Software shareware,
-included unmodified. DOOM is a trademark of id Software LLC, who are not
-involved in this.
+included unmodified. DOOM is a trademark of id Software LLC; this project is
+independent of them.
 
 ### Thanks
 
