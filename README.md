@@ -134,8 +134,8 @@ Three things the port needed before it would boot:
 - `boolean` has to stay four bytes wide. `doomtype.h` declares its own
   `enum { false, true }`, which stopped compiling once SDL2 started including
   `<stdbool.h>`. Its fallback, `typedef bool boolean`, is quietly fatal: DOOM
-  memsets sprite tables to `-1` and tests them against `true`, which is defined
-  for a four byte enum and not for a one byte `_Bool`. Read through a `_Bool` the
+  memsets sprite tables to `-1` and tests them against `true`, a comparison
+  that holds for a four byte enum and breaks for a one byte `_Bool`. Read through a `_Bool` the
   sentinel comes back true, and the boot dies in `r_things.c` complaining about a
   sprite, which looks exactly like a corrupt wad.
 - `-nomusic`, for the reason above.
