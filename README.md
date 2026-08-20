@@ -61,16 +61,31 @@ game, drop your own iwad in as `web/doom1.wad`.
 
 ### How this was made
 
-Claude Code built this in 53 minutes, from first command to a public repo, and
-then spent about another hour on the recording after I asked for polish.
+Two agents made this, each doing the job it is good at. I run my work inside
+[Pane](https://github.com/dcouple/Pane), a workspace that gives every task its
+own git worktree and agent terminal. A chat orchestrator sits above the agents,
+a Claude Fable 5 session running the pane-orchestrator skill from
+[dcouple/skills](https://github.com/dcouple/skills) with the workflow
+conventions from [dcouple/orchestra](https://github.com/dcouple/orchestra). It
+writes the briefs, dispatches the work, and carries my messages to agents while
+they run.
 
-The direction it got was one paragraph: make DOOM run in the terminal the way
-[terminal-code](https://github.com/zenbu-labs/terminal-code) made VS Code run in
-the terminal, read those two repos first, and it has to be reproducible by
-strangers with one command. Nothing after that was specified. Which DOOM to use,
-where to get a wad that is legal to redistribute, how to build it, what broke
-and why, how to prove any of it worked, how to license a project whose engine is
-GPL and whose data is shareware. It worked those out and told me when it had.
+I sent the orchestrator the
+[terminal-code](https://github.com/zenbu-labs/terminal-code) tweet and asked
+for DOOM the same way. It created a worktree, wrote a one-page brief, and
+handed it to a Claude Opus 5 agent. The brief set the ground rules: read
+terminal-browser and terminal-code first, pick an existing web DOOM, ship the
+shareware wad only, self-host everything so the install one-liner keeps working
+on its own, prove that keys reach the game, and finish with a recording and the
+steps to reproduce it. Everything else was the agent's to figure out: which
+port, how to build it, what broke and why, and how to license a project whose
+engine is GPL and whose data is shareware. It figured those out and reported
+back. First command to public repo took 53 minutes, and the recording took
+about another hour after I asked for polish.
+
+The brief is in [BRIEF.md](BRIEF.md), verbatim, along with the one message the
+orchestrator relayed mid-build. If you want to see what the delegation actually
+looked like, that file is the whole of it.
 
 The part I did not expect: the machine it was working on has screen recording
 switched off, so it could not see the terminal it was driving. Instead of asking
@@ -145,6 +160,7 @@ involved in this.
 ### Thanks
 
 - [terminal-browser](https://github.com/zenbu-labs/terminal-browser), which does the hard part
+- [Pane](https://github.com/dcouple/Pane), [dcouple/skills](https://github.com/dcouple/skills) and [dcouple/orchestra](https://github.com/dcouple/orchestra), the workspace and orchestration this was built inside
 - [terminal-code](https://github.com/zenbu-labs/terminal-code), which showed a web app in a terminal pane can be a real product
 - [cloudflare/doom-wasm](https://github.com/cloudflare/doom-wasm) and [Chocolate Doom](https://github.com/chocolate-doom/chocolate-doom)
 - id Software, for shipping the source
