@@ -1,3 +1,5 @@
+![Terminal Doom — a pixel-art robot playing in a terminal arcade](docs/assets/terminal-doom-banner.png)
+
 # terminal-doom
 
 DOOM inside your terminal
@@ -38,6 +40,8 @@ Fullscreen the terminal before you play. The game is 320x200 upscaled to
 whatever the pane is, so a bigger pane is a bigger, sharper DOOM.
 
 ### Controls
+
+![Controls: W A S D to move, arrow keys or mouse to turn, Ctrl to fire, and Space for doors and switches](docs/assets/terminal-doom-controls.png)
 
 | Action | Key |
 | --- | --- |
